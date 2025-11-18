@@ -22,7 +22,7 @@ describe('Smoke tests', () => {
     cy.get('[data-cy="login-submit"]').click();
 
     // Vérifier qu’un produit a le bouton Ajouter au panier
-    cy.visit(`${baseUrl}/#/products/3`);
+    cy.visit(`${baseUrl}/#/products/5`);
     cy.get('[data-cy="detail-product-add"]', { timeout: 10000 }).should('exist');
   });
 
