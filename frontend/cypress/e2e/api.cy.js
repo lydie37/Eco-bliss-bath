@@ -23,7 +23,7 @@ describe('Tests API Eco-Bliss Bath', () => {
       cy.request({
         method: 'GET',
         url: `${apiBase}/orders`,
-        failOnStatusCode: false
+        failOnStatusCode: false // pour gérer le code erreur
       }).then((res) => {
         expect([401, 403]).to.include(res.status);
       });
@@ -37,7 +37,7 @@ describe('Tests API Eco-Bliss Bath', () => {
         method: 'GET',
         url: `${apiBase}/orders`,
         headers: { Authorization: `Bearer ${userToken}` },
-        failOnStatusCode: false // pour gérer les 400
+        failOnStatusCode: false // pour gérer le code erreur
       }).then((res) => {
         if (res.status === 200) {
           expect(res.body).to.have.property('orderLines').that.is.an('array');
@@ -91,7 +91,7 @@ describe('Tests API Eco-Bliss Bath', () => {
         method: 'PUT',
         url: `${apiBase}/orders/add`,
         headers: { Authorization: `Bearer ${userToken}` },
-        failOnStatusCode: false, // pour gérer les 400
+        failOnStatusCode: false, // pour gérer le code erreur
         body: {
           productId: 5,
           quantity: 1
@@ -106,7 +106,7 @@ describe('Tests API Eco-Bliss Bath', () => {
         method: 'PUT',
         url: `${apiBase}/orders/add`,
         headers: { Authorization: `Bearer ${userToken}` },
-        failOnStatusCode: false,
+        failOnStatusCode: false, // pour gérer le code erreur
         body: {
           productId: 999,
           quantity: 1
