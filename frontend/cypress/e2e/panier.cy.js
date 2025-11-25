@@ -1,6 +1,5 @@
-describe('Tests UI Panier - Produit 3 (Stock négatif)', () => {
+describe('Tests UI Panier', () => {
   const apiBase = 'http://localhost:8081';
-  const productId = 3; // produit avec stock négatif
   let userToken;
 
   before(() => {
@@ -15,55 +14,97 @@ describe('Tests UI Panier - Produit 3 (Stock négatif)', () => {
     });
   });
 
-  // Vider le panier avant chaque test pour garantir l'isolation
+  // Vider le panier avant chaque test
   beforeEach(() => {
     cy.request({
-      method: 'DELETE',
+      method: 'GET',
       url: `${apiBase}/orders`,
       headers: { Authorization: `Bearer ${userToken}` },
       failOnStatusCode: false
+    }).then((orderRes) => {
+      const lines = orderRes.body.orderLines || [];
+      lines.forEach(line => {
+        cy.request({
+          method: 'DELETE',
+          url: `${apiBase}/orders/${line.id}/delete`,
+          headers: { Authorization: `Bearer ${userToken}` },
+          failOnStatusCode: false
+        });
+      });
     });
   });
 
-  describe('Vérification du stock initial', () => {
+  // Produit 3 : Stock négatif
+  
+  const productIdNegatif = 3;
+
+  describe('Produit 3 (Stock négatif)', () => {
+
     it('Le stock doit être ≤ 0', () => {
-      cy.request(`${apiBase}/products/${productId}`).then((res) => {
+      cy.request(`${apiBase}/products/${productIdNegatif}`).then((res) => {
         expect(res.status).to.eq(200);
         const stock = res.body.availableStock;
-        cy.log(`Stock Produit ${productId} : ${stock}`);
+        cy.log(`Stock Produit ${productIdNegatif} : ${stock}`);
         expect(stock).to.be.lte(0);
       });
     });
-  });
 
- describe('Blocage ajout au panier via API', () => {
-  it('Ne doit pas pouvoir ajouter le produit si stock ≤ 0', () => {
-    cy.request(`${apiBase}/products/${productId}`).then((res) => {
-      const stock = res.body.availableStock;
-      expect(stock).to.be.lte(0); // Vérification avant tout ajout
+    it('Ne doit pas pouvoir ajouter le produit si stock ≤ 0', () => {
+      cy.request(`${apiBase}/products/${productIdNegatif}`).then((res) => {
+        const stock = res.body.availableStock;
+        expect(stock).to.be.lte(0);
 
-      // Visiter la page produit
-      cy.visit(`http://localhost:4200/#/products/${productId}`);
+        cy.visit(`http://localhost:4200/#/products/${productIdNegatif}`);
+        cy.get('[data-cy="detail-product-add"]').click();
+        cy.wait(500);
 
-      // Tenter l'ajout malgré stock ≤0
-      cy.get('[data-cy="detail-product-add"]').click();
-
-      // Attendre que le backend enregistre l’ajout
-      cy.wait(500);
-
-      // Vérifier via l’API si le produit a été ajouté
-      cy.request({
-        method: 'GET',
-        url: `${apiBase}/orders`,
-        headers: { Authorization: `Bearer ${userToken}` },
-      }).then((orderRes) => {
-        const added = orderRes.body.orderLines.find(line => line.product.id === productId);
-        expect(added).to.not.exist; 
+        cy.request({
+          method: 'GET',
+          url: `${apiBase}/orders`,
+          headers: { Authorization: `Bearer ${userToken}` },
+        }).then((orderRes) => {
+          const added = orderRes.body.orderLines.find(line => line.product.id === productIdNegatif);
+          expect(added).to.not.exist;
+        });
       });
     });
-  });
-});
 
+  });
+
+
+  // Produit 6 : Stock positif
+ 
+  const productIdPositif = 6;
+
+  describe('Produit 6 (Stock positif)', () => {
+
+    it('Doit pouvoir ajouter le produit si stock > 1', () => {
+      cy.request(`${apiBase}/products/${productIdPositif}`).then(res => {
+        expect(res.status).to.eq(200);
+        const stock = res.body.availableStock;
+        cy.log(`Stock Produit ${productIdPositif} : ${stock}`);
+        expect(stock).to.be.gt(1);
+
+        cy.visit(`http://localhost:4200/#/products/${productIdPositif}`);
+
+        cy.get('[data-cy="detail-product-add"]').should('be.visible').and('not.be.disabled').click();
+        cy.wait(500);
+
+        cy.request({
+          method: 'GET',
+          url: `${apiBase}/orders`,
+          headers: { Authorization: `Bearer ${userToken}` },
+        }).then(orderRes => {
+          const added = orderRes.body.orderLines?.find(line => line.product.id === productIdPositif);
+          expect(added).to.exist;
+          expect(added.quantity).to.eq(1);
+        });
+      });
+    });
+
+  });
+
+  // Autres tests 
 
   describe('Vérification stock affiché', () => {
     it('Champ stock affiché si présent', () => {
@@ -114,6 +155,41 @@ describe('Tests UI Panier - Produit 3 (Stock négatif)', () => {
   });
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
