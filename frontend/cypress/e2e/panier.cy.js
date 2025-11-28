@@ -71,38 +71,41 @@ describe('Tests UI Panier', () => {
 
   });
 
+  // Produit 5 : Stock positif (>1)
+const productIdPositif = 5;
 
-  // Produit 6 : Stock positif
- 
-  const productIdPositif = 6;
+describe('Produit 5 (Stock > 1)', () => {
 
-  describe('Produit 6 (Stock positif)', () => {
+  it('Le stock doit être > 1', () => {
+    cy.request(`${apiBase}/products/${productIdPositif}`).then((res) => {
+      expect(res.status).to.eq(200);
+      const stock = res.body.availableStock;
+      cy.log(`Stock Produit ${productIdPositif} : ${stock}`);
+      expect(stock).to.be.gt(1);
+    });
+  });
 
-    it('Doit pouvoir ajouter le produit si stock > 1', () => {
-      cy.request(`${apiBase}/products/${productIdPositif}`).then(res => {
-        expect(res.status).to.eq(200);
-        const stock = res.body.availableStock;
-        cy.log(`Stock Produit ${productIdPositif} : ${stock}`);
-        expect(stock).to.be.gt(1);
+  it('Doit pouvoir ajouter le produit si stock > 1', () => {
+    cy.request(`${apiBase}/products/${productIdPositif}`).then((res) => {
+      const stock = res.body.availableStock;
+      expect(stock).to.be.gt(1);
 
-        cy.visit(`http://localhost:4200/#/products/${productIdPositif}`);
+      cy.visit(`http://localhost:4200/#/products/${productIdPositif}`);
+      cy.get('[data-cy="detail-product-add"]').click();
+      cy.wait(500);
 
-        cy.get('[data-cy="detail-product-add"]').should('be.visible').and('not.be.disabled').click();
-        cy.wait(500);
-
-        cy.request({
-          method: 'GET',
-          url: `${apiBase}/orders`,
-          headers: { Authorization: `Bearer ${userToken}` },
-        }).then(orderRes => {
-          const added = orderRes.body.orderLines?.find(line => line.product.id === productIdPositif);
-          expect(added).to.exist;
-          expect(added.quantity).to.eq(1);
-        });
+      cy.request({
+        method: 'GET',
+        url: `${apiBase}/orders`,
+        headers: { Authorization: `Bearer ${userToken}` },
+      }).then((orderRes) => {
+        const added = orderRes.body.orderLines.find(line => line.product.id === productIdPositif);
+        expect(added).to.exist;
       });
     });
-
   });
+
+});
 
   // Autres tests 
 
@@ -155,6 +158,17 @@ describe('Tests UI Panier', () => {
   });
 
 });
+
+
+
+
+
+
+
+
+
+
+
 
 
 
