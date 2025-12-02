@@ -40,14 +40,15 @@ describe('Tests UI Panier', () => {
 
   describe('Produit 3 (Stock négatif)', () => {
 
-    it('Le stock doit être ≤ 0', () => {
-      cy.request(`${apiBase}/products/${productIdNegatif}`).then((res) => {
-        expect(res.status).to.eq(200);
-        const stock = res.body.availableStock;
-        cy.log(`Stock Produit ${productIdNegatif} : ${stock}`);
-        expect(stock).to.be.lte(0);
-      });
-    });
+it('Le stock doit être ≤ 0', () => {
+  cy.request(`${apiBase}/products/${productIdNegatif}`).then((res) => {
+    expect(res.status).to.eq(200);
+    const stock = res.body.availableStock;
+    cy.log(`Stock Produit ${productIdNegatif} : ${stock}`);
+    expect(stock, 'Produit avec stock négatif détecté, test échoue').to.be.gt(0);
+  });
+});
+
 
     it('Ne doit pas pouvoir ajouter le produit si stock ≤ 0', () => {
       cy.request(`${apiBase}/products/${productIdNegatif}`).then((res) => {
@@ -70,7 +71,6 @@ describe('Tests UI Panier', () => {
     });
 
   });
-
 
 
   // Autres tests 
@@ -124,6 +124,7 @@ describe('Tests UI Panier', () => {
   });
 
 });
+
 
 
 
